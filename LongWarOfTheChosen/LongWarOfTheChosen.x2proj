@@ -1277,6 +1277,7 @@
     <Content Include="Content\Plots\Plot_WLD_Stream_LgObj_02.umap" />
     <Content Include="Content\Plots\Plot_WLD_SupplyExtract_Ravine_Ted.umap" />
     <Content Include="Content\Plots\Plot_WLD_SupplyExtract_LgObj_Stream_Ted.umap" />
+    <Content Include="Content\Plots\Plot_ABN_SupplyExtract_Waterfront2_Ted.umap" />
     <Content Include="Content\Plots\Plot_CTY_LgObj_Civic_01.umap" />
     <Content Include="Content\Plots\Plot_CTY_LgObj_Civic_02.umap" />
     <Content Include="Content\Plots\Plot_CTY_LgObj_Mixed_01.umap" />
