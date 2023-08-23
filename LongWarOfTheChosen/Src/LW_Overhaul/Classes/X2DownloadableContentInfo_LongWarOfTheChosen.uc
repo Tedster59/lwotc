@@ -192,7 +192,28 @@ static event OnPostTemplatesCreated()
 	UpdateChosenActivities();
 	UpdateChosenSabotages();
 	UpdateSitreps();
+	ModifyYellAbility();
 	
+}
+
+// Remove the red alert affect from the yell ability since it cause AI units to go into red alert
+// Credit to RedDobe for this function.
+static function ModifyYellAbility()
+{
+    local X2AbilityTemplateManager        AbilityMgr;
+    local array<X2AbilityTemplate>        arrTemplate;
+    local int                            i;
+
+    // Access Ability Template Manager
+    AbilityMgr = class'X2AbilityTemplateManager'.static.GetAbilityTemplateManager();
+    
+    // Access Template for all difficulties
+    AbilityMgr.FindAbilityTemplateAllDifficulties('Yell', arrTemplate);
+    for (i = 0; i < arrTemplate.Length; i++)
+    {
+        arrTemplate[i].AbilityMultiTargetEffects.length = 0;
+          `Log("Removing Yell Red Alert effects");
+    }
 }
 
 /// <summary>
