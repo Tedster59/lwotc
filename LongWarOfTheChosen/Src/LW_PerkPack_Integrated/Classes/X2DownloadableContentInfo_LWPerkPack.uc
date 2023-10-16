@@ -453,6 +453,9 @@ static function bool AbilityTagExpandHandler_CH(string InString, out string OutS
 		case 'MOVING_TARGET_DODGE':
 			Outstring = string(class'X2Ability_XMBPerkAbilitySet'.default.MOVING_TARGET_DODGE);
 			return true;
+		case 'CONCUSSION_ROCKET_DISORIENT_CHANCE':
+			Outstring = string(class'X2Ability_XMBPerkAbilitySet'.default.MOVING_TARGET_DODGE);
+			return true;
 		case 'HERO_SLAYER_DMG':
 			Outstring = string(int(class'X2Ability_XMBPerkAbilitySet'.default.HERO_SLAYER_DMG * 100));
 			return true;
