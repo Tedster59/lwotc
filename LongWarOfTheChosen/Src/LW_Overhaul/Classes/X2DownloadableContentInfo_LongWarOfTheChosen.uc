@@ -47,8 +47,8 @@ var config bool bNerfFrostLegion;
 
 var config array<MissionDefinition> ReplacementMissionDefs;
 
-
-
+var config array<LootTable> LootToRemove;
+var config array<LootTable> LootToadd;
 
 // An array of mission types where we should just let vanilla do its
 // thing with regard to the Chosen rather than try to override its
@@ -221,6 +221,7 @@ static event OnPostTemplatesCreated()
 	UpdateChosenSabotages();
 	UpdateSitreps();
 	UpdateEncounterLists();
+	UpdateLoot();
 	ModifyYellAbility();
 	ModifyMissionSchedules();
 	
@@ -257,6 +258,43 @@ static function ModifyMissionSchedules()
 			`LWTrace("Couldn't find base missiondef to replace for mission name" @CurrentMissionDef.MissionName,, 'TedLog');
 		}
 	}
+
+}
+
+static function UpdateLoot()
+{
+    local LootTable LootTableToRemove;
+   // local LootTableEntry LootTableEntryToRemove;
+    local LootTable LootTableToAdd;
+   // local LootTableEntry LootTableEntryToAdd;
+
+    foreach default.LootToRemove(LootTableToRemove)
+    {
+		`LWTrace("Removing Loot Table " @LootTableToRemove.TableName);
+
+		// We're in OPTC so loot tables aren't initialized yet
+    	class'X2LootTableManager'.static.RemoveLootTableStatic(LootTableToRemove);
+		/*
+	   foreach LootTableToRemove.Loots(LootTableEntryToRemove)
+        {
+			`LWTrace("Removing Loot entry for" @LootTableEntryToRemove.TemplateName);
+            class'X2LootTableManager'.static.RemoveEntryStatic(LootTableToRemove.TableName, LootTableEntryToRemove, false);
+        }
+		*/
+    }
+
+    foreach default.LootToAdd(LootTableToAdd)
+    {
+		`LWTrace("Adding Loot Table " @LootTableToAdd.TableName);
+		class'X2LootTableManager'.static.AddLootTableStatic(LootTableToAdd);
+		/*
+        foreach LootTableToAdd.Loots(LootTableEntryToAdd)
+        {
+			`LWTrace("Adding Loot entry for" @LootTableEntryToAdd.TemplateName);
+            class'X2LootTableManager'.static.AddEntryStatic(LootTableToAdd.TableName, LootTableEntryToAdd, false);
+        }
+		*/
+    }
 }
 
 static function UpdateEncounterLists()
