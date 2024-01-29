@@ -29,6 +29,7 @@ var localized string m_strCannotChangeLiaisonTitle;
 var localized string m_strCannotChangeLiaison;
 
 var localized string m_strIncomeIntel;
+var localized string m_strIncomeIntelCurrency;
 var localized string m_strIncomeSupply;
 var localized string m_strIncomeRecruit;
 
@@ -56,10 +57,12 @@ var UIScrollingText JobDetail;
 var UIScrollingText IncomeIntelStr;
 var UIScrollingText IncomeSupplyStr;
 var UIScrollingText IncomeRecruitStr;
+var UIScrollingText IncomeIntelCurrencyStr;
 
 var string IncomeIntel;
 var string IncomeSupply;
 var string IncomeRecruit;
+var string IncomeIntelCurrency;
 
 var UIPersonnel_Liaison LiaisonScreen;
 
@@ -90,13 +93,15 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	local XComGameState_WorldRegion Region;
 	local XComGameStateHistory History;
 
-	local float currentRecruit;
+	local float currentRecruit, currentIntelCurrency;
 
 	History = `XCOMHISTORY;
 	Outpost = XComGameState_LWOutpost(History.GetGameStateForObjectID(OutpostRef.ObjectID));
 	Region = XComGameState_WorldRegion(History.GetGameStateForObjectID(Outpost.Region.ObjectID));
 
-	IncomeIntel = class'UIUtilities'.static.FormatFloat(Outpost.GetProjectedDailyIncomeForJob('Intel', true, true), 1);
+	currentIntelCurrency = Outpost.GetProjectedDailyIncomeForJob('Intel', true, true);
+
+	IncomeIntel = class'UIUtilities'.static.FormatFloat(currentIntelCurrency, 1);
 	IncomeSupply = class'UIUtilities'.static.FormatFloat(Outpost.GetProjectedDailyIncomeForJob('Resupply', true, true), 1);
 
 	CurrentRecruit = Outpost.GetProjectedDailyIncomeForJob('Recruit', true, true);
@@ -111,6 +116,13 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 	{
 		IncomeRecruit = "N/A";
 	}
+
+	currentIntelCurrency = currentIntelCurrency /class'XComGameState_LWOutpost'.default.INCOME_POOL_THRESHOLD;
+	if(class'XComGameState_WorldRegion_LWStrategyAI'.static.GetRegionalAI(Region).bLiberated)
+	{
+		currentIntelCurrency *= 2;
+	}
+	IncomeIntelCurrency = class'UIUtilities'.static.FormatFloat(currentIntelCurrency, 1);
 	
 	// KDM : The normal UI has 2 columns : rebel name, and rebel job; the fancy UI has a rebel perks column in the middle.
 	if (USE_FANCY_VERSION)
@@ -196,19 +208,25 @@ simulated function InitScreen(XComPlayerController InitController, UIMovie InitM
 
 	IncomeIntelStr = Spawn(class'UIScrollingText', MainPanel);
 	IncomeIntelStr.bAnimateOnInit = false;
-	IncomeIntelStr.InitScrollingText('Outpost_OutpostIncomeIntel_LW', "", panelW - BorderPadding * 2, BorderPadding -200, ListBG.Y + 46.75 + 18);
+	IncomeIntelStr.InitScrollingText('Outpost_OutpostIncomeIntel_LW', "", panelW - BorderPadding * 2, BorderPadding -200, ListBG.Y + 46.75 + 8);
 	IncomeIntelStr.SetHTMLText("<p align=\'RIGHT\'><font size=\'24\' color=\'#fef4cb\'>" $ m_strIncomeIntel @ IncomeIntel $ "</font></p>");
 	IncomeIntelStr.SetAlpha(67.1875);
 
+	IncomeIntelCurrencyStr = Spawn(class'UIScrollingText', MainPanel);
+	IncomeIntelCurrencyStr.bAnimateOnInit = false;
+	IncomeIntelCurrencyStr.InitScrollingText('Outpost_OutpostIncomeIntelCurrency_LW', "", panelW - BorderPadding * 2, BorderPadding -200, ListBG.Y + 46.75 + 36);
+	IncomeIntelCurrencyStr.SetHTMLText("<p align=\'RIGHT\'><font size=\'24\' color=\'#fef4cb\'>" $ m_strIncomeIntelCurrency @ IncomeIntelCurrency $ "</font></p>");
+	IncomeIntelCurrencyStr.SetAlpha(67.1875);
+
 	IncomeSupplyStr = Spawn(class'UIScrollingText', MainPanel);
 	IncomeSupplyStr.bAnimateOnInit = false;
-	IncomeSupplyStr.InitScrollingText('Outpost_OutpostIncomeSupply_LW', "", panelW - BorderPadding * 2, BorderPadding -200, ListBG.Y + 46.75 + 46);
+	IncomeSupplyStr.InitScrollingText('Outpost_OutpostIncomeSupply_LW', "", panelW - BorderPadding * 2, BorderPadding -200, ListBG.Y + 46.75 + 64);
 	IncomeSupplyStr.SetHTMLText("<p align=\'RIGHT\'><font size=\'24\' color=\'#fef4cb\'>" $ m_strIncomeSupply @ IncomeSupply $ "</font></p>");
 	IncomeSupplyStr.SetAlpha(67.1875);
 
 	IncomeRecruitStr = Spawn(class'UIScrollingText', MainPanel);
 	IncomeRecruitStr.bAnimateOnInit = false;
-	IncomeRecruitStr.InitScrollingText('Outpost_OutpostIncomeRecruit_LW', "", panelW - BorderPadding * 2, BorderPadding -200, ListBG.Y + 46.75 + 74);
+	IncomeRecruitStr.InitScrollingText('Outpost_OutpostIncomeRecruit_LW', "", panelW - BorderPadding * 2, BorderPadding -200, ListBG.Y + 46.75 + 92);
 	IncomeRecruitStr.SetHTMLText("<p align=\'RIGHT\'><font size=\'24\' color=\'#fef4cb\'>" $ m_strIncomeRecruit @ IncomeRecruit $ "</font></p>");
 	IncomeRecruitStr.SetAlpha(67.1875);
 
@@ -945,12 +963,20 @@ function OnJobChanged(UIOutpostManagement_ListItem ListItem, int Direction)
 function UpdateJobUI()
 {
 	local XComGameState_LWOutpost Outpost;
-	local float CurrentRecruit;
+	local XComGameState_WorldRegion Region;
+	local float CurrentRecruit, currentIntelCurrency;
+	local XComGameStateHistory History;
 
 	SaveOutpost();
 
-	Outpost = XComGameState_LWOutpost(`XCOMHISTORY.GetGameStateForObjectID(OutpostRef.ObjectID));
-	IncomeIntel = class'UIUtilities'.static.FormatFloat(Outpost.GetProjectedDailyIncomeForJob('Intel', true, true), 1);
+	History = `XCOMHISTORY;
+
+	Outpost = XComGameState_LWOutpost(History.GetGameStateForObjectID(OutpostRef.ObjectID));
+	Region = XComGameState_WorldRegion(History.GetGameStateForObjectID(Outpost.Region.ObjectID));
+
+	currentIntelCurrency = Outpost.GetProjectedDailyIncomeForJob('Intel', true, true);
+
+	IncomeIntel = class'UIUtilities'.static.FormatFloat(currentIntelCurrency, 1);
 	IncomeSupply = class'UIUtilities'.static.FormatFloat(Outpost.GetProjectedDailyIncomeForJob('Resupply', true, true), 1);
 
 	CurrentRecruit = Outpost.GetProjectedDailyIncomeForJob('Recruit', true, true);
@@ -965,8 +991,18 @@ function UpdateJobUI()
 	{
 		IncomeRecruit = "N/A";
 	}
+	
+	currentIntelCurrency = currentIntelCurrency /class'XComGameState_LWOutpost'.default.INCOME_POOL_THRESHOLD;
+	if(class'XComGameState_WorldRegion_LWStrategyAI'.static.GetRegionalAI(Region).bLiberated)
+	{
+		currentIntelCurrency *= 2;
+	}
+	IncomeIntelCurrency = class'UIUtilities'.static.FormatFloat(currentIntelCurrency, 1);
+	
+
 
 	IncomeIntelStr.SetHTMLText("<p align=\'RIGHT\'><font size=\'24\' color=\'#fef4cb\'>" $ m_strIncomeIntel @ IncomeIntel $ "</font></p>");
+	IncomeIntelCurrencyStr.SetHTMLText("<p align=\'RIGHT\'><font size=\'24\' color=\'#fef4cb\'>" $ m_strIncomeIntelCurrency @ IncomeIntelCurrency $ "</font></p>");
 	IncomeSupplyStr.SetHTMLText("<p align=\'RIGHT\'><font size=\'24\' color=\'#fef4cb\'>" $ m_strIncomeSupply @ IncomeSupply $ "</font></p>");
 	IncomeRecruitStr.SetHTMLText("<p align=\'RIGHT\'><font size=\'24\' color=\'#fef4cb\'>" $ m_strIncomeRecruit @ IncomeRecruit $ "</font></p>");
 

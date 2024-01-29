@@ -552,6 +552,7 @@ ChangeAllJobsStr="CHANGE ALL JOBS"
 PerksStr="PERKS" 
 
 m_strIncomeIntel="Mission Finding Power:"
+m_strIncomeIntelCurrency="Intel Per Day:"
 m_strIncomeSupply="Supplies Per Day:"
 m_strIncomeRecruit="Days Per Recruit:"
 
